@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: swagger-service
+  jackson:
+    date-format: io.swagger.RFC3339DateFormat
+    serialization:
+      write-dates-as-timestamps: false
+  data:
+    mongodb:
+      host: "mongo"
+      port: 27017
+      database: "amisno"
+      username: "root"
+      password: "toor"
+      authentication-database: "admin"
+
+server.port: 8082
+
+springfox:
+  documentation:
+    swagger:
+      v2:
+        path: '/api-docs'
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    serviceUrl:
+      defaultZone: http://amisno-infra-eureka:9103/eureka/
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      registerHealthIndicator: true
+      minimumNumberOfCalls: 5
+      permittedNumberOfCallsInHalfOpenState: 3
+      automaticTransitionFromOpenToHalfOpenEnabled: true
+      failureRateThreshold: 50
+      eventConsumerBufferSize: 10
+      recordExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+        - java.util.concurrent.TimeoutException
+        - java.io.IOException
+  instances:
+    orderService:
+      baseConfig: default
+
+management:
+  endpoints.web.exposure.include: '*'
+  endpoint.health.show-details: always
+  health.diskspace.enabled: false
+  circuitbreakers.enabled: true
+  ratelimiters.enabled: false
+  metrics:
+    tags:.application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        resilience4j.circuitbreaker.calls: true
+server:
+  servlet:
+    context-path: '/'
